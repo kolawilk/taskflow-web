@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -114,43 +114,38 @@ const PRIORITY_CONFIG: Partial<Record<Priority, { label: string; color: string }
 export function TaskDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const [loading, setLoading] = useState(true)
   const [copiedBranch, setCopiedBranch] = useState(false)
 
-  // Look up task by ID from mock data (with proper fallback)
-  const task = MOCK_TASKS[id || 'TASKFLOW-T005'] || MOCK_TASKS['TASKFLOW-T001']
+  // Look up task by ID from mock data
+  const task = id ? MOCK_TASKS[id] : undefined
 
-  // Calculate progress (percentage of acceptance criteria containing 'done' or 'complete')
-  const _progress = Math.round((task.acceptanceCriteria.filter(c => c.toLowerCase().includes('done') || c.toLowerCase().includes('complete')).length / task.acceptanceCriteria.length) * 100)
-  void _progress
+  // Handle missing task - show 404-like state
+  if (!task) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardHeader>
+            <CardTitle>Task Not Found</CardTitle>
+            <CardDescription>The requested task could not be found.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
+  // Handle priority with fallbacks for type safety
+  const priorityLabel = PRIORITY_CONFIG[task.priority || 'medium']?.label
+  const priorityColor = PRIORITY_CONFIG[task.priority || 'medium']?.color
 
   const handleCopyBranch = () => {
     navigator.clipboard.writeText(task.branch)
     setCopiedBranch(true)
     setTimeout(() => setCopiedBranch(false), 2000)
-  }
-
-  const getPriorityDisplay = () => {
-    const priority = task.priority || 'medium'
-    return PRIORITY_CONFIG[priority]?.label || 'Medium'
-  }
-
-  const getPriorityColor = () => {
-    const priority = task.priority || 'medium'
-    return PRIORITY_CONFIG[priority]?.color || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-  }
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
   }
 
   return (
@@ -170,7 +165,7 @@ export function TaskDetailPage() {
         </div>
         <h1 className="text-2xl font-semibold mb-2">{task.title}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Priority: <Badge variant="outline" className={getPriorityColor()}>{getPriorityDisplay()}</Badge></span>
+          <span>Priority: <Badge variant="outline" className={priorityColor || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>{priorityLabel || 'Medium'}</Badge></span>
           <span>Iteration: {task.iteration}</span>
           <span>Branch: <code className="bg-muted px-2 py-1 rounded text-xs">{task.branch}</code></span>
         </div>
@@ -270,8 +265,8 @@ export function TaskDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Priority</p>
-                <Badge variant="outline" className={getPriorityColor()}>
-                  {getPriorityDisplay()}
+                <Badge variant="outline" className={priorityColor || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>
+                  {priorityLabel || 'Medium'}
                 </Badge>
               </div>
               <div>
