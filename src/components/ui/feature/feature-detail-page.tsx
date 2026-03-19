@@ -75,11 +75,28 @@ const TASK_STAGE_CONFIG: Record<Task['stage'], { label: string; color: string }>
   done: { label: 'Done', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
 }
 
+// Group tasks by stage
+function groupTasksByStage(tasks: Task[]): Record<Task['stage'], Task[]> {
+  const grouped: Record<Task['stage'], Task[]> = {
+    backlog: [],
+    dev: [],
+    review: [],
+    'pm-check': [],
+    done: [],
+  }
+  tasks.forEach(task => {
+    grouped[task.stage].push(task)
+  })
+  return grouped
+}
+
 export function FeatureDetailPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
 
-  const progress = Math.round((MOCK_TASKS.filter(t => t.stage === 'done').length / MOCK_TASKS.length) * 100)
+  const groupedTasks = groupTasksByStage(MOCK_TASKS)
+  const doneCount = groupedTasks.done.length
+  const progress = Math.round((doneCount / MOCK_TASKS.length) * 100)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 500)
@@ -107,6 +124,46 @@ export function FeatureDetailPage() {
       case 'done':
         return <div className="h-2 w-2 rounded-full bg-emerald-500" />
     }
+  }
+
+  // Render tasks grouped by stage
+  const renderTasksByStage = (stage: Task['stage'], tasks: Task[]) => {
+    if (tasks.length === 0) return null
+
+    return (
+      <div key={stage} className="space-y-3">
+        <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground pb-2 border-b border-border">
+          {TASK_STAGE_CONFIG[stage].label} ({tasks.length})
+        </h4>
+        {tasks.map((task) => (
+          <Card
+            key={task.id}
+            className="hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate(`/tasks/${task.id}`)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-primary">{task.id}</span>
+                    <Badge variant="outline" className={TASK_STAGE_CONFIG[task.stage].color}>
+                      {TASK_STAGE_CONFIG[task.stage].label}
+                    </Badge>
+                  </div>
+                  <h4 className="font-medium mb-2">{task.title}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{task.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    {task.assignedAgent && <span>Assignee: {task.assignedAgent}</span>}
+                    {task.priority && <span>Priority: {task.priority}</span>}
+                  </div>
+                </div>
+                <div className="mt-1">{getStageIcon(task.stage)}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -141,38 +198,15 @@ export function FeatureDetailPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Task List */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Task List - Grouped by Stage */}
+        <div className="lg:col-span-2 space-y-6">
           <h3 className="text-xl font-semibold">Tasks ({MOCK_TASKS.length})</h3>
-          <div className="space-y-3">
-            {MOCK_TASKS.map((task) => (
-              <Card
-                key={task.id}
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/tasks/${task.id}`)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-primary">{task.id}</span>
-                        <Badge variant="outline" className={TASK_STAGE_CONFIG[task.stage].color}>
-                          {TASK_STAGE_CONFIG[task.stage].label}
-                        </Badge>
-                      </div>
-                      <h4 className="font-medium mb-2">{task.title}</h4>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{task.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {task.assignedAgent && <span>Assignee: {task.assignedAgent}</span>}
-                        {task.priority && <span>Priority: {task.priority}</span>}
-                      </div>
-                    </div>
-                    <div className="mt-1">{getStageIcon(task.stage)}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          
+          {renderTasksByStage('done', groupedTasks.done)}
+          {renderTasksByStage('pm-check', groupedTasks['pm-check'])}
+          {renderTasksByStage('review', groupedTasks.review)}
+          {renderTasksByStage('dev', groupedTasks.dev)}
+          {renderTasksByStage('backlog', groupedTasks.backlog)}
         </div>
 
         {/* Feature Info Sidebar */}
