@@ -6,31 +6,71 @@ import { Button } from '@/components/ui/button'
 import { Copy, Check, ArrowLeft } from 'lucide-react'
 import type { Task, TaskStage, TaskHistoryEntry, Priority } from '@/types/task'
 
-// Mock task data
-const MOCK_TASK: Task = {
-  id: 'TASKFLOW-T005',
-  title: 'Create task detail page with full information',
-  description: 'Build a comprehensive task detail page showing title, description, acceptance criteria checklist, current stage, assigned agent, priority, and iteration count.',
-  stage: 'dev',
-  assignedAgent: 'dev',
-  priority: 'high',
-  iteration: 1,
-  branch: 'feat/taskflow-f005-task-detail-&-history-view',
-  featureId: 'TASKFLOW-F005',
-  featureTitle: 'Task Detail & History View',
-  acceptanceCriteria: [
-    'Task detail page displays full task title and description',
-    'Acceptance criteria are shown as a checklist with checkboxes',
-    'Current stage is prominently displayed (backlog, dev, review, pm-check, done)',
-    'Assigned agent is shown with avatar or name',
-    'Priority and iteration count are visible',
-    'Feature link navigates back to feature detail',
-    'Branch name is displayed and copyable',
-    'Page is responsive for MacBook Air and iPad',
-    'Dark mode styling is consistent with shadcn/ui theme',
-  ],
-  createdAt: '2026-03-19T00:07:52Z',
-  updatedAt: '2026-03-19T06:28:00Z',
+// Mock task data - multiple tasks for demo
+const MOCK_TASKS: Record<string, Task> = {
+  'TASKFLOW-T005': {
+    id: 'TASKFLOW-T005',
+    title: 'Create task detail page with full information',
+    description: 'Build a comprehensive task detail page showing title, description, acceptance criteria checklist, current stage, assigned agent, priority, and iteration count.',
+    stage: 'dev',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f005-task-detail-&-history-view',
+    featureId: 'TASKFLOW-F005',
+    featureTitle: 'Task Detail & History View',
+    acceptanceCriteria: [
+      'Task detail page displays full task title and description',
+      'Acceptance criteria are shown as a checklist with checkboxes',
+      'Current stage is prominently displayed (backlog, dev, review, pm-check, done)',
+      'Assigned agent is shown with avatar or name',
+      'Priority and iteration count are visible',
+      'Feature link navigates back to feature detail',
+      'Branch name is displayed and copyable',
+      'Page is responsive for MacBook Air and iPad',
+      'Dark mode styling is consistent with shadcn/ui theme',
+    ],
+    createdAt: '2026-03-19T00:07:52Z',
+    updatedAt: '2026-03-19T06:28:00Z',
+  },
+  'TASKFLOW-T001': {
+    id: 'TASKFLOW-T001',
+    title: 'Initialize project structure',
+    description: 'React + Vite setup with shadcn/ui',
+    stage: 'done',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f002-initial-setup',
+    featureId: 'TASKFLOW-F002',
+    featureTitle: 'Dashboard & Projects View',
+    acceptanceCriteria: [
+      'React + Vite setup complete',
+      'shadcn/ui installed and configured',
+      'Dark mode support enabled',
+    ],
+    createdAt: '2026-03-18T22:00:00Z',
+    updatedAt: '2026-03-19T00:30:00Z',
+  },
+  'TASKFLOW-T002': {
+    id: 'TASKFLOW-T002',
+    title: 'Configure dark mode',
+    description: 'Implement dark mode support using next-themes',
+    stage: 'done',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f002-dark-mode',
+    featureId: 'TASKFLOW-F002',
+    featureTitle: 'Dashboard & Projects View',
+    acceptanceCriteria: [
+      'Light/dark toggle implemented',
+      'System preference detection',
+      'Persistent theme selection',
+    ],
+    createdAt: '2026-03-19T00:00:00Z',
+    updatedAt: '2026-03-19T01:00:00Z',
+  },
 }
 
 const MOCK_HISTORY: TaskHistoryEntry[] = [
@@ -77,24 +117,32 @@ export function TaskDetailPage() {
   const [loading, setLoading] = useState(true)
   const [copiedBranch, setCopiedBranch] = useState(false)
 
-  // Use the task with matching ID or fallback to mock
-  const task = (id === 'TASKFLOW-T005' ? MOCK_TASK : MOCK_TASK) as Task
+  // Look up task by ID from mock data (with proper fallback)
+  const task = MOCK_TASKS[id || 'TASKFLOW-T005'] || MOCK_TASKS['TASKFLOW-T001']
 
-  // Progress is calculated based on acceptance criteria containing 'done' or 'complete'
-  const progress = Math.round((task.acceptanceCriteria.filter(c => c.toLowerCase().includes('done') || c.toLowerCase().includes('complete')).length / task.acceptanceCriteria.length) * 100)
+  // Calculate progress (percentage of acceptance criteria containing 'done' or 'complete')
+  const _progress = Math.round((task.acceptanceCriteria.filter(c => c.toLowerCase().includes('done') || c.toLowerCase().includes('complete')).length / task.acceptanceCriteria.length) * 100)
+  void _progress
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 500)
     return () => clearTimeout(timer)
   }, [])
 
-  // Unused progress calculation (kept for potential future use)
-  void progress
-
   const handleCopyBranch = () => {
     navigator.clipboard.writeText(task.branch)
     setCopiedBranch(true)
     setTimeout(() => setCopiedBranch(false), 2000)
+  }
+
+  const getPriorityDisplay = () => {
+    const priority = task.priority || 'medium'
+    return PRIORITY_CONFIG[priority]?.label || 'Medium'
+  }
+
+  const getPriorityColor = () => {
+    const priority = task.priority || 'medium'
+    return PRIORITY_CONFIG[priority]?.color || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   }
 
   if (loading) {
@@ -122,7 +170,7 @@ export function TaskDetailPage() {
         </div>
         <h1 className="text-2xl font-semibold mb-2">{task.title}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Priority: <Badge variant="outline" className={PRIORITY_CONFIG[task.priority || 'medium']?.color || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>{PRIORITY_CONFIG[task.priority || 'medium']?.label || 'Medium' || 'Medium'}</Badge></span>
+          <span>Priority: <Badge variant="outline" className={getPriorityColor()}>{getPriorityDisplay()}</Badge></span>
           <span>Iteration: {task.iteration}</span>
           <span>Branch: <code className="bg-muted px-2 py-1 rounded text-xs">{task.branch}</code></span>
         </div>
@@ -222,8 +270,8 @@ export function TaskDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Priority</p>
-                <Badge variant="outline" className={PRIORITY_CONFIG[task.priority || 'medium']?.color || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>
-                  {PRIORITY_CONFIG[task.priority || 'medium']?.label || 'Medium'}
+                <Badge variant="outline" className={getPriorityColor()}>
+                  {getPriorityDisplay()}
                 </Badge>
               </div>
               <div>
