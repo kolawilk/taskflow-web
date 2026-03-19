@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Copy, Check, ArrowLeft } from 'lucide-react'
 import type { Task, TaskStage, TaskHistoryEntry, Priority } from '@/types/task'
+import { TaskTimeline } from './task-timeline'
 
 // Mock task data - multiple tasks for demo
 const MOCK_TASKS: Record<string, Task> = {
@@ -115,9 +116,32 @@ export function TaskDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [copiedBranch, setCopiedBranch] = useState(false)
+  const [history, setHistory] = useState<TaskHistoryEntry[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   // Look up task by ID from mock data
   const task = id ? MOCK_TASKS[id] : undefined
+
+  // Fetch history on mount
+  useEffect(() => {
+    if (id) {
+      setLoadingHistory(true)
+      fetch(`/api/tasks/${id}/history`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setHistory(data.data)
+          }
+        })
+        .catch(() => {
+          // Fallback to mock history if API fails
+          setHistory(MOCK_HISTORY)
+        })
+        .finally(() => {
+          setLoadingHistory(false)
+        })
+    }
+  }, [id])
 
   // Handle missing task - show 404-like state
   if (!task) {
@@ -226,22 +250,14 @@ export function TaskDetailPage() {
             <CardHeader>
               <CardTitle>History</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {MOCK_HISTORY.map((entry) => (
-                <div key={entry.id} className="flex gap-3 border-l-2 border-border pl-4">
-                  <div className="mt-1.5 h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{entry.action}</span>
-                      <span className="text-sm text-muted-foreground">by {entry.agent}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{entry.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(entry.timestamp).toLocaleString()}
-                    </p>
-                  </div>
+            <CardContent>
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
-              ))}
+              ) : (
+                <TaskTimeline history={history} />
+              )}
             </CardContent>
           </Card>
         </div>

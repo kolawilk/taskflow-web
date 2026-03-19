@@ -19,12 +19,9 @@
     "esModuleInterop": true,
     "allowJs": true,
     "checkJs": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "outDir": "./dist/server",
+    "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "src/server.ts"]
+  "exclude": ["node_modules"]
 }
