@@ -1,22 +1,15 @@
-export default {
-  ignores: ['**/node_modules', '**/dist', '**/build'],
-  overrides: [
-    {
-      files: ['*.{js,jsx,ts,tsx}'],
-      extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react-hooks/recommended'],
-      parser: '@typescript-eslint/parser',
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      plugins: ['@typescript-eslint', 'react-hooks'],
-      rules: {
-        'react-refresh/only-export-components': 'off',
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      },
-    },
+{
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended"
   ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "react-hooks"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-console": ["warn", { "allow": ["error", "warn"] }]
+  },
+  "ignorePatterns": ["dist", "node_modules", "vite.config.ts"]
 }
