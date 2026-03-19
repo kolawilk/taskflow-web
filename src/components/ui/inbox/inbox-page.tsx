@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { InboxList } from './inbox-list'
 import { InboxFilterBar } from './inbox-filter-bar'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { QuickAddTrigger } from '../quick-add/quick-add-trigger'
 import type { InboxFilter, SortByOption } from '../../../types/inbox'
+import type { QuickAddFormData } from '../../../types/quick-add'
 
 export function InboxPage() {
   const [filter, setFilter] = useState<InboxFilter>({
@@ -16,6 +16,12 @@ export function InboxPage() {
     setFilter((prev) => ({ ...prev, sortBy }))
   }
 
+  const handleQuickAdd = (data: QuickAddFormData) => {
+    // In a real app, this would call the taskflow API
+    console.log('Adding to inbox:', data)
+    // Add the new item to the list
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex items-center justify-between mb-8">
@@ -25,10 +31,7 @@ export function InboxPage() {
             Capture ideas, bugs, and feature requests
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Item
-        </Button>
+        <QuickAddTrigger onAdd={handleQuickAdd} />
       </header>
 
       <InboxFilterBar
