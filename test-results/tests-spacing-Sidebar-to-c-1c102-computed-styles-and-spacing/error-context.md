@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Taskflow" [level=2] [ref=e7]
+      - navigation [ref=e8]:
+        - link "Dashboard" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - link "Projects" [ref=e10] [cursor=pointer]:
+          - /url: /projects
+        - link "Features" [ref=e11] [cursor=pointer]:
+          - /url: /features
+        - link "Tasks" [ref=e12] [cursor=pointer]:
+          - /url: /tasks
+      - generic [ref=e14]:
+        - heading "Projects" [level=3] [ref=e15]
+        - generic [ref=e16]:
+          - link "taskflow-web" [ref=e17] [cursor=pointer]:
+            - /url: /projects/taskflow-web
+            - text: taskflow-web
+          - link "taskflow-api" [ref=e19] [cursor=pointer]:
+            - /url: /projects/taskflow-api
+            - text: taskflow-api
+          - link "taskflow-mobile" [ref=e21] [cursor=pointer]:
+            - /url: /projects/taskflow-mobile
+            - text: taskflow-mobile
+  - main [ref=e23]:
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - heading "Dashboard" [level=2] [ref=e28]
+          - paragraph [ref=e29]: Overview of your projects and tasks
+        - generic [ref=e30]:
+          - button "Light mode" [ref=e31]:
+            - img [ref=e32]
+          - button "Dark mode" [ref=e38]:
+            - img [ref=e39]
+          - button "System mode" [ref=e41]:
+            - img [ref=e42]
+      - generic [ref=e44]:
+        - generic [ref=e46]:
+          - heading "Total Projects" [level=3] [ref=e47]
+          - paragraph [ref=e48]: "5"
+        - generic [ref=e50]:
+          - heading "Active Tasks" [level=3] [ref=e51]
+          - paragraph [ref=e52]: "24"
+        - generic [ref=e54]:
+          - heading "In Review" [level=3] [ref=e55]
+          - paragraph [ref=e56]: "3"
+        - generic [ref=e58]:
+          - heading "Completed" [level=3] [ref=e59]
+          - paragraph [ref=e60]: "42"
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic [ref=e63]: Projects
+          - generic [ref=e64]: Manage your projects and track progress
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - heading "taskflow-web" [level=4] [ref=e69]
+              - paragraph [ref=e70]: Updated 2h ago
+            - generic [ref=e71]: Active
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - heading "taskflow-api" [level=4] [ref=e74]
+              - paragraph [ref=e75]: Updated 4h ago
+            - generic [ref=e76]: Active
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - heading "taskflow-mobile" [level=4] [ref=e79]
+              - paragraph [ref=e80]: Updated 1d ago
+            - generic [ref=e81]: Planning
+```

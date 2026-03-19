@@ -25,7 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 pt-16 md:pt-0 transition-all duration-300">
+      <main className="flex-1 md:ml-64 md:pl-8 pt-16 md:pt-0 transition-all duration-300">
         {children}
       </main>
     </div>
