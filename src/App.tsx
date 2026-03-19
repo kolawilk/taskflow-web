@@ -6,6 +6,8 @@ import { InboxPage } from './components/ui/inbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Badge } from './components/ui/badge'
 import { ProjectsList } from './components/ui/projects-list'
+import { FeatureDetailPage as FeatureDetailPageComponent } from './components/ui/feature/feature-detail-page'
+import { FeatureListPage } from './components/ui/feature/feature-list-page'
 
 // Dashboard Page
 function DashboardPage() {
@@ -127,59 +129,7 @@ function ProjectDetailPage() {
   )
 }
 
-// Feature Detail Page
-function FeatureDetailPage() {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Feature: Dashboard & Projects View</h2>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Create the main dashboard showing all projects with their status
-        </p>
-      </header>
-      
-      <div className="rounded-xl border border-border bg-card p-6 mb-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Feature Details</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Feature ID</p>
-            <p className="font-medium mt-1">TASKFLOW-F002</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <Badge className="mt-1 bg-emerald-500 text-emerald-50 hover:bg-emerald-600">Complete</Badge>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Tasks</p>
-            <p className="font-medium mt-1">2 of 2 done</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card shadow-sm">
-        <div className="p-6 border-b border-border">
-          <h3 className="text-lg font-semibold">Tasks</h3>
-        </div>
-        <div className="divide-y divide-border">
-          {[
-            { id: 'TASKFLOW-T001', title: 'Initialize project structure', status: 'Done' },
-            { id: 'TASKFLOW-T002', title: 'Configure dark mode', status: 'Done' },
-          ].map((task, idx) => (
-            <div key={idx} className="p-6 flex items-center justify-between hover:bg-accent/50 rounded-lg transition-colors">
-              <div>
-                <p className="text-sm font-medium text-primary mb-1">{task.id}</p>
-                <h4 className="font-semibold">{task.title}</h4>
-              </div>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                {task.status}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+// Feature Detail Page (imported from separate file)
 
 // Task Detail Page
 function TaskDetailPage() {
@@ -265,7 +215,8 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/features/:id" element={<FeatureDetailPage />} />
+          <Route path="/features" element={<FeatureListPage />} />
+          <Route path="/features/:id" element={<FeatureDetailPageComponent />} />
           <Route path="/tasks/:id" element={<TaskDetailPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/settings" element={<SettingsPage />} />
