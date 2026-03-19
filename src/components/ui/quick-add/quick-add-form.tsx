@@ -63,13 +63,14 @@ export function QuickAddForm({ onSubmit, onCancel }: QuickAddFormProps) {
   return (
     <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">Title *</Label>
+        <Label htmlFor="title" className="font-medium">Title *</Label>
         <Input
           id="title"
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
           placeholder="Enter a brief title"
-          className={errors.title ? 'border-red-500' : ''}
+          className={errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}
+          aria-invalid={!!errors.title}
         />
         {errors.title && (
           <p className="text-xs text-red-500">{errors.title}</p>
@@ -77,18 +78,19 @@ export function QuickAddForm({ onSubmit, onCancel }: QuickAddFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="font-medium">Description</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Enter a detailed description (optional)"
           rows={4}
+          className="min-h-[80px]"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="category" className="font-medium">Category</Label>
         <Input
           id="category"
           value={formData.category}
@@ -97,12 +99,21 @@ export function QuickAddForm({ onSubmit, onCancel }: QuickAddFormProps) {
         />
       </div>
 
-      <div className="flex justify-end gap-2 pt-4">
+      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Adding...' : 'Add Item'}
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Adding...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <span>+</span> Add Item
+            </span>
+          )}
         </Button>
       </div>
     </form>

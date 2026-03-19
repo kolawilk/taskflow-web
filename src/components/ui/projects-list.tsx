@@ -104,7 +104,7 @@ export function ProjectsList({ projects = MOCK_PROJECTS }: { projects?: Project[
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => (
         <Link key={project.id} to={`/projects/${project.id}`}>
-          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+          <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer h-full hover:-translate-y-1">
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{project.name}</CardTitle>

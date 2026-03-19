@@ -21,7 +21,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <aside
       className={`${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
+      } fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shadow-xl md:shadow-none`}
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-border">
@@ -36,9 +36,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 location.pathname === item.path
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
@@ -49,7 +49,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className="p-4 border-t border-border">
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Projects
             </h3>
             <div className="space-y-1">
@@ -57,7 +57,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Link
                   key={project}
                   to={`/projects/${project.toLowerCase().replace(/\s/g, '-')}`}
-                  className="flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                  className="flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200"
                 >
                   <div className="w-2 h-2 rounded-full bg-primary mr-2" />
                   {project}
@@ -73,7 +73,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
-    <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-4">
+    <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-background border-b border-border flex items-center justify-between px-4 shadow-sm">
       <Button variant="ghost" size="icon" onClick={onMenuClick}>
         <Menu className="h-6 w-6" />
       </Button>
