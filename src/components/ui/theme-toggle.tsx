@@ -14,7 +14,7 @@ export function ThemeToggle() {
         size="icon"
         onClick={() => setTheme('light')}
         title="Light mode"
-        className={themeLabel === 'light' ? 'bg-slate-200 dark:bg-slate-800' : ''}
+        className={themeLabel === 'light' ? 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700' : ''}
       >
         <Sun className="h-5 w-5" />
       </Button>
@@ -23,7 +23,7 @@ export function ThemeToggle() {
         size="icon"
         onClick={() => setTheme('dark')}
         title="Dark mode"
-        className={themeLabel === 'dark' ? 'bg-slate-200 dark:bg-slate-800' : ''}
+        className={themeLabel === 'dark' ? 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700' : ''}
       >
         <Moon className="h-5 w-5" />
       </Button>
@@ -32,7 +32,7 @@ export function ThemeToggle() {
         size="icon"
         onClick={() => setTheme('system')}
         title="System mode"
-        className={themeLabel === 'system' ? 'bg-slate-200 dark:bg-slate-800' : ''}
+        className={themeLabel === 'system' ? 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700' : ''}
       >
         <Monitor className="h-5 w-5" />
       </Button>

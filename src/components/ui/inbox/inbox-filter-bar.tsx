@@ -55,7 +55,7 @@ export function InboxFilterBar({
           placeholder="Search inbox..."
           value={searchValue || ''}
           onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function InboxFilterBar({
         <select
           value={sortBy || 'date-desc'}
           onChange={(e) => onSortChange && onSortChange(e.target.value as SortByOption)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 cursor-pointer"
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
