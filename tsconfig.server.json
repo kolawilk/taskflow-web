@@ -20,8 +20,11 @@
     "allowJs": true,
     "checkJs": true,
     "outDir": "./dist/server",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": ["src/server.ts", "src/database.ts"],
+  "exclude": ["node_modules", "src/**/*.tsx"]
 }
