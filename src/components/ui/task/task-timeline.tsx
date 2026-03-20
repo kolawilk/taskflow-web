@@ -1,5 +1,13 @@
-import { type TaskHistoryEntry } from '@/types/task'
 import { Badge } from '@/components/ui/badge'
+
+// History entry type that supports both local and API formats
+export interface TimelineEntry {
+  id: string
+  action: string
+  agent: string | null
+  message: string
+  timestamp: string
+}
 
 // Action configuration for visual styling
 const ACTION_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -29,7 +37,7 @@ function getIterationChange(message: string): string | null {
   return null
 }
 
-export function TaskTimeline({ history }: { history: TaskHistoryEntry[] }) {
+export function TaskTimeline({ history }: { history: TimelineEntry[] }) {
   if (history.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -84,7 +92,7 @@ export function TaskTimeline({ history }: { history: TaskHistoryEntry[] }) {
 
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-muted-foreground">by</span>
-                  <span className="font-medium">{entry.agent || 'Unknown'}</span>
+                  <span className="font-medium">{entry.agent ?? 'System'}</span>
                 </div>
 
                 <p className="text-sm text-muted-foreground mt-2">{entry.message}</p>

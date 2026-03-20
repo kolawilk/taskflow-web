@@ -4,99 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Copy, Check, ArrowLeft } from 'lucide-react'
-import type { Task, TaskStage, TaskHistoryEntry, Priority } from '@/types/task'
+import { api, Task as ApiTask, TaskHistoryEntry as ApiTaskHistoryEntry } from '@/services/api'
+import type { TaskStage, Priority } from '@/types/task'
 import { TaskTimeline } from './task-timeline'
-
-// Mock task data - multiple tasks for demo
-const MOCK_TASKS: Record<string, Task> = {
-  'TASKFLOW-T005': {
-    id: 'TASKFLOW-T005',
-    title: 'Create task detail page with full information',
-    description: 'Build a comprehensive task detail page showing title, description, acceptance criteria checklist, current stage, assigned agent, priority, and iteration count.',
-    stage: 'dev',
-    assignedAgent: 'dev',
-    priority: 'high',
-    iteration: 1,
-    branch: 'feat/taskflow-f005-task-detail-&-history-view',
-    featureId: 'TASKFLOW-F005',
-    featureTitle: 'Task Detail & History View',
-    acceptanceCriteria: [
-      'Task detail page displays full task title and description',
-      'Acceptance criteria are shown as a checklist with checkboxes',
-      'Current stage is prominently displayed (backlog, dev, review, pm-check, done)',
-      'Assigned agent is shown with avatar or name',
-      'Priority and iteration count are visible',
-      'Feature link navigates back to feature detail',
-      'Branch name is displayed and copyable',
-      'Page is responsive for MacBook Air and iPad',
-      'Dark mode styling is consistent with shadcn/ui theme',
-    ],
-    createdAt: '2026-03-19T00:07:52Z',
-    updatedAt: '2026-03-19T06:28:00Z',
-  },
-  'TASKFLOW-T001': {
-    id: 'TASKFLOW-T001',
-    title: 'Initialize project structure',
-    description: 'React + Vite setup with shadcn/ui',
-    stage: 'done',
-    assignedAgent: 'dev',
-    priority: 'high',
-    iteration: 1,
-    branch: 'feat/taskflow-f002-initial-setup',
-    featureId: 'TASKFLOW-F002',
-    featureTitle: 'Dashboard & Projects View',
-    acceptanceCriteria: [
-      'React + Vite setup complete',
-      'shadcn/ui installed and configured',
-      'Dark mode support enabled',
-    ],
-    createdAt: '2026-03-18T22:00:00Z',
-    updatedAt: '2026-03-19T00:30:00Z',
-  },
-  'TASKFLOW-T002': {
-    id: 'TASKFLOW-T002',
-    title: 'Configure dark mode',
-    description: 'Implement dark mode support using next-themes',
-    stage: 'done',
-    assignedAgent: 'dev',
-    priority: 'high',
-    iteration: 1,
-    branch: 'feat/taskflow-f002-dark-mode',
-    featureId: 'TASKFLOW-F002',
-    featureTitle: 'Dashboard & Projects View',
-    acceptanceCriteria: [
-      'Light/dark toggle implemented',
-      'System preference detection',
-      'Persistent theme selection',
-    ],
-    createdAt: '2026-03-19T00:00:00Z',
-    updatedAt: '2026-03-19T01:00:00Z',
-  },
-}
-
-const MOCK_HISTORY: TaskHistoryEntry[] = [
-  {
-    id: 'h1',
-    action: 'created',
-    agent: 'pm',
-    message: 'Task created: Create task detail page with full information',
-    timestamp: '2026-03-19T00:07:52Z',
-  },
-  {
-    id: 'h2',
-    action: 'advanced',
-    agent: 'pm',
-    message: 'Released from backlog',
-    timestamp: '2026-03-19T06:27:56Z',
-  },
-  {
-    id: 'h3',
-    action: 'claimed',
-    agent: 'dev',
-    message: 'Claimed by dev',
-    timestamp: '2026-03-19T06:28:15Z',
-  },
-]
 
 const STAGE_CONFIG: Record<TaskStage, { label: string; color: string }> = {
   backlog: { label: 'Backlog', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
@@ -114,39 +24,125 @@ const PRIORITY_CONFIG: Partial<Record<Priority, { label: string; color: string }
 
 export function TaskDetailPage() {
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
+  const { id: taskId } = useParams<{ id: string }>()
+
+  const [task, setTask] = useState<ApiTask | null>(null)
+  const [history, setHistory] = useState<ApiTaskHistoryEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [taskError, setTaskError] = useState<string | null>(null)
+  const [historyError, setHistoryError] = useState<string | null>(null)
   const [copiedBranch, setCopiedBranch] = useState(false)
-  const [history, setHistory] = useState<TaskHistoryEntry[]>([])
-  const [loadingHistory, setLoadingHistory] = useState(false)
 
-  // Look up task by ID from mock data
-  const task = id ? MOCK_TASKS[id] : undefined
-
-  // Fetch history on mount
+  // Fetch task data
   useEffect(() => {
-    if (id) {
-      setLoadingHistory(true)
-      fetch(`/api/tasks/${id}/history`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setHistory(data.data)
-          }
-        })
-        .catch(() => {
-          // Fallback to mock history if API fails
-          setHistory(MOCK_HISTORY)
-        })
-        .finally(() => {
-          setLoadingHistory(false)
-        })
+    if (!taskId) {
+      setTaskError('No task ID provided')
+      setIsLoading(false)
+      return
     }
-  }, [id])
 
-  // Handle missing task - show 404-like state
+    const fetchTask = async () => {
+      setIsLoading(true)
+      setTaskError(null)
+      try {
+        const result = await api.getTaskById(taskId)
+        if (result.data) {
+          setTask(result.data)
+        } else if (result.error) {
+          setTaskError(result.error)
+        }
+      } catch (err) {
+        setTaskError(err instanceof Error ? err.message : 'Failed to fetch task')
+      }
+      setIsLoading(false)
+    }
+
+    fetchTask()
+  }, [taskId])
+
+  // Fetch history data
+  useEffect(() => {
+    if (!taskId) {
+      setHistoryError('No task ID provided')
+      return
+    }
+
+    const fetchHistory = async () => {
+      try {
+        const result = await api.getTaskHistory(taskId)
+        if (result.data) {
+          setHistory(result.data)
+        } else if (result.error) {
+          setHistoryError(result.error)
+        }
+      } catch (err) {
+        setHistoryError(err instanceof Error ? err.message : 'Failed to fetch task history')
+      }
+    }
+
+    fetchHistory()
+  }, [taskId])
+
+  const handleCopyBranch = () => {
+    if (task?.branch) {
+      navigator.clipboard.writeText(task.branch)
+      setCopiedBranch(true)
+      setTimeout(() => setCopiedBranch(false), 2000)
+    }
+  }
+
+  // Parse acceptance criteria from API string field
+  const parseAcceptanceCriteria = (criteriaString: string | null): string[] => {
+    if (!criteriaString) return []
+    try {
+      return JSON.parse(criteriaString)
+    } catch {
+      return []
+    }
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (taskError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardHeader>
+            <CardTitle>Error Loading Task</CardTitle>
+            <CardDescription>{taskError}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Task not found
   if (!task) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         <Card className="max-w-2xl mx-auto mt-8">
           <CardHeader>
             <CardTitle>Task Not Found</CardTitle>
@@ -162,15 +158,11 @@ export function TaskDetailPage() {
     )
   }
 
-  // Handle priority with fallbacks for type safety
-  const priorityLabel = PRIORITY_CONFIG[task.priority || 'medium']?.label
-  const priorityColor = PRIORITY_CONFIG[task.priority || 'medium']?.color
-
-  const handleCopyBranch = () => {
-    navigator.clipboard.writeText(task.branch)
-    setCopiedBranch(true)
-    setTimeout(() => setCopiedBranch(false), 2000)
-  }
+  const stage = task.stage as TaskStage
+  const priority = (task.priority || 'medium') as Priority
+  const priorityLabel = PRIORITY_CONFIG[priority]?.label || 'Medium'
+  const priorityColor = PRIORITY_CONFIG[priority]?.color
+  const acceptanceCriteria = parseAcceptanceCriteria(task.acceptance_criteria)
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -183,13 +175,13 @@ export function TaskDetailPage() {
       <header className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <h2 className="text-3xl font-bold tracking-tight">{task.id}</h2>
-          <Badge className={STAGE_CONFIG[task.stage].color}>
-            {STAGE_CONFIG[task.stage].label}
+          <Badge className={STAGE_CONFIG[stage]?.color || STAGE_CONFIG.backlog.color}>
+            {STAGE_CONFIG[stage]?.label || stage}
           </Badge>
         </div>
         <h1 className="text-2xl font-semibold mb-2">{task.title}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Priority: <Badge variant="outline" className={priorityColor || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>{priorityLabel || 'Medium'}</Badge></span>
+          <span>Priority: <Badge variant="outline" className={priorityColor}>{priorityLabel}</Badge></span>
           <span>Iteration: {task.iteration}</span>
           <span>Branch: <code className="bg-muted px-2 py-1 rounded text-xs">{task.branch}</code></span>
         </div>
@@ -204,41 +196,43 @@ export function TaskDetailPage() {
               <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground leading-relaxed">{task.description}</p>
+              <p className="text-muted-foreground leading-relaxed">{task.description || 'No description provided.'}</p>
             </CardContent>
           </Card>
 
           {/* Acceptance Criteria */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Acceptance Criteria</CardTitle>
-              <CardDescription>{task.acceptanceCriteria.length} criteria</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {task.acceptanceCriteria.map((criteria) => (
-                  <div key={criteria} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/30 transition-colors">
-                    <div className="mt-0.5 h-4 w-4 rounded border border-border bg-background flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
+          {acceptanceCriteria.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Acceptance Criteria</CardTitle>
+                <CardDescription>{acceptanceCriteria.length} criteria</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {acceptanceCriteria.map((criteria, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/30 transition-colors">
+                      <div className="mt-0.5 h-4 w-4 rounded border border-border bg-background flex items-center justify-center">
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      </div>
+                      <p className="text-sm leading-relaxed">{criteria}</p>
                     </div>
-                    <p className="text-sm leading-relaxed">{criteria}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Feature Link */}
-          {task.featureId && (
+          {task.feature_id && (
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  {task.featureId}
-                  <span className="text-sm font-normal text-muted-foreground">{task.featureTitle}</span>
+                  {task.feature_id}
+                  <span className="text-sm font-normal text-muted-foreground">{task.feature_title}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" onClick={() => navigate(`/features/${task.featureId}`)} className="w-full">
+                <Button variant="outline" onClick={() => navigate(`/features/${task.feature_id}`)} className="w-full">
                   View Feature
                 </Button>
               </CardContent>
@@ -251,12 +245,12 @@ export function TaskDetailPage() {
               <CardTitle>History</CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingHistory ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                </div>
-              ) : (
+              {historyError ? (
+                <p className="text-sm text-muted-foreground">Failed to load history: {historyError}</p>
+              ) : history.length > 0 ? (
                 <TaskTimeline history={history} />
+              ) : (
+                <p className="text-sm text-muted-foreground">No history available.</p>
               )}
             </CardContent>
           </Card>
@@ -274,21 +268,21 @@ export function TaskDetailPage() {
                 <p className="text-sm font-medium text-muted-foreground mb-1">Assigned Agent</p>
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
-                    {task.assignedAgent?.charAt(0).toUpperCase() || '?'}
+                    {task.assigned_agent?.charAt(0).toUpperCase() || '?'}
                   </div>
-                  <span className="font-medium">{task.assignedAgent || 'Unassigned'}</span>
+                  <span className="font-medium">{task.assigned_agent || 'Unassigned'}</span>
                 </div>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Priority</p>
-                <Badge variant="outline" className={priorityColor || 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}>
-                  {priorityLabel || 'Medium'}
+                <Badge variant="outline" className={priorityColor}>
+                  {priorityLabel}
                 </Badge>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Stage</p>
-                <Badge className={STAGE_CONFIG[task.stage].color}>
-                  {STAGE_CONFIG[task.stage].label}
+                <Badge className={STAGE_CONFIG[stage]?.color || STAGE_CONFIG.backlog.color}>
+                  {STAGE_CONFIG[stage]?.label || stage}
                 </Badge>
               </div>
               <div>
