@@ -3,70 +3,11 @@ import { DashboardLayout } from './components/ui/dashboard-layout'
 import { ThemeToggle } from './components/ui/theme-toggle'
 import { Button } from './components/ui/button'
 import { InboxPage } from './components/ui/inbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Badge } from './components/ui/badge'
 import { ProjectsList } from './components/ui/projects-list'
 import { FeatureDetailPage as FeatureDetailPageComponent } from './components/ui/feature/feature-detail-page'
 import { FeatureListPage } from './components/ui/feature/feature-list-page'
-
-// Dashboard Page
-function DashboardPage() {
-  const stats = [
-    { name: 'Total Projects', value: '5', icon: null },
-    { name: 'Active Tasks', value: '24', icon: null },
-    { name: 'In Review', value: '3', icon: null },
-    { name: 'Completed', value: '42', icon: null },
-  ]
-
-  const projects = [
-    { name: 'taskflow-web', status: 'Active', lastUpdated: '2h ago' },
-    { name: 'taskflow-api', status: 'Active', lastUpdated: '4h ago' },
-    { name: 'taskflow-mobile', status: 'Planning', lastUpdated: '1d ago' },
-  ]
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground mt-1">Overview of your projects and tasks</p>
-        </div>
-        <ThemeToggle />
-      </header>
-      
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        {stats.map((stat, idx) => (
-          <Card key={idx} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground">{stat.name}</h3>
-              <p className="text-3xl font-bold mt-2">{stat.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle>Projects</CardTitle>
-          <CardDescription>Manage your projects and track progress</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="divide-y divide-border">
-            {projects.map((project, idx) => (
-              <div key={idx} className="flex items-center justify-between py-4 hover:bg-accent/50 rounded-lg transition-colors px-4">
-                <div>
-                  <h4 className="font-semibold">{project.name}</h4>
-                  <p className="text-sm text-muted-foreground">Updated {project.lastUpdated}</p>
-                </div>
-                <Badge variant="secondary">{project.status}</Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+import { DashboardPage } from './components/ui/dashboard/dashboard-page'
 
 // Projects Page
 function ProjectsPage() {
