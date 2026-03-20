@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from './components/ui/dashboard-layout'
 import { ThemeToggle } from './components/ui/theme-toggle'
 import { Button } from './components/ui/button'
@@ -8,14 +9,38 @@ import { ProjectsList } from './components/ui/projects-list'
 import { FeatureDetailPage as FeatureDetailPageComponent } from './components/ui/feature/feature-detail-page'
 import { FeatureListPage } from './components/ui/feature/feature-list-page'
 import { DashboardPage } from './components/ui/dashboard/dashboard-page'
+import { api, Project } from './services/api'
 
 // Projects Page
 function ProjectsPage() {
-  const projects = [
-    { name: 'taskflow-web', description: 'Web UI for taskflow', status: 'Active' },
-    { name: 'taskflow-api', description: 'REST API for taskflow', status: 'Active' },
-    { name: 'taskflow-mobile', description: 'Mobile app for taskflow', status: 'Planning' },
-  ]
+  const [projects, setProjects] = useState<import('./components/ui/projects-list').Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoading(true)
+      setError(null)
+      const result = await api.getProjects()
+      if (result.data) {
+        // Transform API response to ProjectsList format
+        const transformed = result.data.map((p: Project) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || 'No description',
+          status: 'active' as const,
+          taskCount: 0,
+          featuresInProgress: 0,
+          lastUpdated: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'Unknown',
+        }))
+        setProjects(transformed)
+      } else if (result.error) {
+        setError(result.error)
+      }
+      setIsLoading(false)
+    }
+    fetchProjects()
+  }, [])
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -29,7 +54,19 @@ function ProjectsPage() {
         </Button>
       </header>
       
-      <ProjectsList projects={projects as any} />
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Loading projects...</p>
+        </div>
+      )}
+      
+      {error && (
+        <div className="rounded-xl border border-red-500 bg-red-500/10 p-6 mb-6">
+          <p className="text-red-500 font-medium">Error: {error}</p>
+        </div>
+      )}
+      
+      {!isLoading && !error && <ProjectsList projects={projects} />}
     </div>
   )
 }
