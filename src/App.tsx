@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from './components/ui/dashboard-layout'
 import { ThemeToggle } from './components/ui/theme-toggle'
@@ -9,7 +9,7 @@ import { ProjectsList } from './components/ui/projects-list'
 import { FeatureDetailPage as FeatureDetailPageComponent } from './components/ui/feature/feature-detail-page'
 import { FeatureListPage } from './components/ui/feature/feature-list-page'
 import { DashboardPage } from './components/ui/dashboard/dashboard-page'
-import { api, Project } from './services/api'
+import { api, Project, Feature } from './services/api'
 
 // Projects Page
 function ProjectsPage() {
@@ -73,35 +73,147 @@ function ProjectsPage() {
 
 // Project Detail Page
 function ProjectDetailPage() {
+  const { id: projectId } = useParams<{ id: string }>()
+  const [project, setProject] = useState<Project | null>(null)
+  const [features, setFeatures] = useState<Feature[]>([])
+  const [isLoadingProject, setIsLoadingProject] = useState(true)
+  const [isLoadingFeatures, setIsLoadingFeatures] = useState(true)
+  const [projectError, setProjectError] = useState<string | null>(null)
+  const [featuresError, setFeaturesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      if (!projectId) {
+        setProjectError('No project ID provided')
+        setIsLoadingProject(false)
+        return
+      }
+
+      setIsLoadingProject(true)
+      setProjectError(null)
+      
+      // Fetch project details by finding in all projects
+      const result = await api.getProjects()
+      if (result.data) {
+        const foundProject = result.data.find((p: Project) => p.id === projectId)
+        if (foundProject) {
+          setProject(foundProject)
+        } else {
+          setProjectError('Project not found')
+        }
+      } else if (result.error) {
+        setProjectError(result.error)
+      }
+      setIsLoadingProject(false)
+    }
+
+    fetchProjectData()
+  }, [projectId])
+
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      if (!projectId) {
+        setFeaturesError('No project ID provided')
+        setIsLoadingFeatures(false)
+        return
+      }
+
+      setIsLoadingFeatures(true)
+      setFeaturesError(null)
+      
+      const result = await api.getFeaturesByProject(projectId)
+      if (result.data) {
+        setFeatures(result.data)
+      } else if (result.error) {
+        setFeaturesError(result.error)
+      }
+      setIsLoadingFeatures(false)
+    }
+
+    fetchFeatures()
+  }, [projectId])
+
+  if (!projectId) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="rounded-xl border border-red-500 bg-red-500/10 p-6">
+          <p className="text-red-500 font-medium">Error: No project ID provided</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Project: taskflow-web</h2>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Web UI for taskflow - manage projects, features, and tasks with a beautiful shadcn/ui interface
-        </p>
+        {isLoadingProject ? (
+          <p className="text-muted-foreground">Loading project...</p>
+        ) : projectError ? (
+          <div className="rounded-xl border border-red-500 bg-red-500/10 p-4">
+            <p className="text-red-500 font-medium">Error: {projectError}</p>
+          </div>
+        ) : project ? (
+          <>
+            <h2 className="text-3xl font-bold tracking-tight">Project: {project.name}</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl">
+              {project.description || 'No description'}
+            </p>
+          </>
+        ) : null}
       </header>
       
       <div className="rounded-xl border border-border bg-card p-6 mb-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Project Details</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <Badge className="mt-1">Active</Badge>
+        {isLoadingProject ? (
+          <p className="text-muted-foreground">Loading...</p>
+        ) : projectError ? (
+          <p className="text-red-500">Error loading project details</p>
+        ) : project ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Status</p>
+              <Badge className="mt-1">Active</Badge>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Created</p>
+              <p className="font-medium mt-1">
+                {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'Unknown'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Features</p>
+              <p className="font-medium mt-1">{features.length}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Last Updated</p>
+              <p className="font-medium mt-1">
+                {project.updated_at ? new Date(project.updated_at).toLocaleDateString() : 'Unknown'}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Created</p>
-            <p className="font-medium mt-1">March 18, 2026</p>
+        ) : null}
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">Features</h3>
+        {isLoadingFeatures ? (
+          <p className="text-muted-foreground">Loading features...</p>
+        ) : featuresError ? (
+          <p className="text-red-500">Error: {featuresError}</p>
+        ) : features.length === 0 ? (
+          <p className="text-muted-foreground">No features found for this project.</p>
+        ) : (
+          <div className="space-y-3">
+            {features.map((feature) => (
+              <div key={feature.id} className="p-4 rounded-lg border border-border hover:bg-accent/30 transition-colors">
+                <h4 className="font-medium">{feature.title}</h4>
+                {feature.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{feature.description}</p>
+                )}
+              </div>
+            ))}
           </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Total Features</p>
-            <p className="font-medium mt-1">8</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-            <p className="font-medium mt-1">24</p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
