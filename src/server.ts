@@ -1,5 +1,6 @@
-import express, { Request, Response, NextFunction } from 'express'
+import express from 'express'
 import cors from 'cors'
+import type { Request, Response, NextFunction } from 'express'
 import { getProjects, getFeaturesByProject, getTasksByFeature, getTaskById, getTaskHistory, getInboxItems, closeDatabase } from './database.ts'
 
 const app = express()
@@ -31,7 +32,7 @@ app.get('/api/projects', async (req: Request, res: Response) => {
 // GET /api/projects/:id/features - Get features for a project
 app.get('/api/projects/:id/features', async (req: Request, res: Response) => {
   try {
-    const features = await getFeaturesByProject(req.params.id)
+    const features = await getFeaturesByProject(String(req.params.id))
     res.json({ success: true, data: features })
   } catch (error) {
     console.error(`Error fetching features for project ${req.params.id}:`, error)
@@ -42,7 +43,7 @@ app.get('/api/projects/:id/features', async (req: Request, res: Response) => {
 // GET /api/features/:id/tasks - Get tasks for a feature
 app.get('/api/features/:id/tasks', async (req: Request, res: Response) => {
   try {
-    const tasks = await getTasksByFeature(req.params.id)
+    const tasks = await getTasksByFeature(String(req.params.id))
     res.json({ success: true, data: tasks })
   } catch (error) {
     console.error(`Error fetching tasks for feature ${req.params.id}:`, error)
@@ -53,7 +54,7 @@ app.get('/api/features/:id/tasks', async (req: Request, res: Response) => {
 // GET /api/tasks/:id - Get full task details
 app.get('/api/tasks/:id', async (req: Request, res: Response) => {
   try {
-    const task = await getTaskById(req.params.id)
+    const task = await getTaskById(String(req.params.id))
     if (!task) {
       return res.status(404).json({ success: false, error: 'Task not found' })
     }
@@ -67,7 +68,7 @@ app.get('/api/tasks/:id', async (req: Request, res: Response) => {
 // GET /api/tasks/:id/history - Get task history
 app.get('/api/tasks/:id/history', async (req: Request, res: Response) => {
   try {
-    const history = await getTaskHistory(req.params.id)
+    const history = await getTaskHistory(String(req.params.id))
     res.json({ success: true, data: history })
   } catch (error) {
     console.error(`Error fetching history for task ${req.params.id}:`, error)

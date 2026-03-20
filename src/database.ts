@@ -159,12 +159,15 @@ export async function getTaskHistory(taskId: string): Promise<TaskHistoryEntry[]
 }
 
 // Get inbox items
-export async function getInboxItems(): Promise<any[]> {
+export async function getInboxItems(): Promise<Record<string, unknown>[]> {
   return new Promise((resolve, reject) => {
     // This is a placeholder - inbox implementation depends on schema
     db.all('SELECT * FROM inbox ORDER BY created_at DESC', [], (err, rows) => {
-      if (err) reject(err)
-      else resolve(rows)
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(rows as Record<string, unknown>[])
     })
   })
 }
