@@ -92,15 +92,10 @@ function ProjectDetailPage() {
       setIsLoadingProject(true)
       setProjectError(null)
       
-      // Fetch project details by finding in all projects
-      const result = await api.getProjects()
+      // Fetch project details directly by ID
+      const result = await api.getProjectById(projectId)
       if (result.data) {
-        const foundProject = result.data.find((p: Project) => p.id === projectId)
-        if (foundProject) {
-          setProject(foundProject)
-        } else {
-          setProjectError('Project not found')
-        }
+        setProject(result.data)
       } else if (result.error) {
         setProjectError(result.error)
       }

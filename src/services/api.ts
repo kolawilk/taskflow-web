@@ -188,6 +188,23 @@ class ApiClient {
   }
 
   /**
+   * Get a single project by ID
+   * @param projectId - The project ID to fetch
+   * @returns Promise with project or null, loading state, and error message
+   */
+  async getProjectById(projectId: string): Promise<ApiResult<Project | null>> {
+    console.log(`[ApiClient] Fetching project: ${projectId}`)
+    if (!projectId) {
+      return {
+        data: null,
+        isLoading: false,
+        error: 'Project ID is required',
+      }
+    }
+    return this.fetch<Project | null>(`/api/projects/${encodeURIComponent(projectId)}`)
+  }
+
+  /**
    * Get features by project ID
    * @param projectId - The project ID to fetch features for
    * @returns Promise with features array, loading state, and error message

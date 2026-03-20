@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import type { Request, Response, NextFunction } from 'express'
-import { getProjects, getFeaturesByProject, getFeatureById, getTasksByFeature, getTaskById, getTaskHistory, getInboxItems, closeDatabase } from './database.ts'
+import { getProjects, getProjectById, getFeaturesByProject, getFeatureById, getTasksByFeature, getTaskById, getTaskHistory, getInboxItems, closeDatabase } from './database.ts'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -26,6 +26,20 @@ app.get('/api/projects', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching projects:', error)
     res.status(500).json({ success: false, error: 'Failed to fetch projects' })
+  }
+})
+
+// GET /api/projects/:id - Get a single project
+app.get('/api/projects/:id', async (req: Request, res: Response) => {
+  try {
+    const project = await getProjectById(String(req.params.id))
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' })
+    }
+    res.json({ success: true, data: project })
+  } catch (error) {
+    console.error(`Error fetching project ${req.params.id}:`, error)
+    res.status(500).json({ success: false, error: 'Failed to fetch project' })
   }
 })
 

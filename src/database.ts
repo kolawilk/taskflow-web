@@ -61,6 +61,20 @@ export async function getProjects(): Promise<Project[]> {
   })
 }
 
+// Get a single project by ID
+export async function getProjectById(projectId: string): Promise<Project | null> {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM projects WHERE id = ?', [projectId], (err, row) => {
+      if (err) {
+        console.error('Error in getProjectById:', err.message)
+        reject(err)
+      } else {
+        resolve(row as Project | null)
+      }
+    })
+  })
+}
+
 // Get features by project ID
 export async function getFeaturesByProject(projectId: string): Promise<Feature[]> {
   return new Promise((resolve, reject) => {
