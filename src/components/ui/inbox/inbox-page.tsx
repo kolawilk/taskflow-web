@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { InboxList } from './inbox-list'
 import { InboxFilterBar } from './inbox-filter-bar'
 import { QuickAddTrigger } from '../quick-add/quick-add-trigger'
-import type { InboxFilter, SortByOption } from '../../../types/inbox'
+import { api } from '../../../services/api'
+import type { InboxItem, InboxFilter, SortByOption } from '../../../types/inbox'
 import type { QuickAddFormData } from '../../../types/quick-add'
 
 export function InboxPage() {
@@ -11,6 +12,35 @@ export function InboxPage() {
     search: '',
     sortBy: 'date-desc',
   })
+  const [items, setItems] = useState<InboxItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchInboxItems = async () => {
+      setIsLoading(true)
+      setError(null)
+      const result = await api.getInboxItems()
+      if (result.error) {
+        setError(result.error)
+        setItems([])
+      } else if (result.data) {
+        // Transform API response to UI expected format
+        const transformedItems: InboxItem[] = result.data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          status: item.status as InboxItem['status'],
+          timestamp: item.created_at || item.updated_at,
+          priority: (item as Record<string, unknown>).priority as InboxItem['priority'],
+          category: (item as Record<string, unknown>).type as InboxItem['category'],
+        }))
+        setItems(transformedItems)
+      }
+      setIsLoading(false)
+    }
+    fetchInboxItems()
+  }, [])
 
   const handleSortChange = (sortBy: SortByOption) => {
     setFilter((prev) => ({ ...prev, sortBy }))
@@ -43,7 +73,12 @@ export function InboxPage() {
         onSortChange={handleSortChange}
       />
 
-      <InboxList filter={filter} />
+      <InboxList
+        items={items}
+        filter={filter}
+        isLoading={isLoading}
+        error={error}
+      />
     </div>
   )
 }
