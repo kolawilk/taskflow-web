@@ -3,71 +3,20 @@ import type { InboxItem, InboxFilter } from '../../../types/inbox'
 import { InboxItemCard } from './inbox-item-card'
 import { EmptyState } from './empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-
-// Mock data
-const MOCK_INBOX_ITEMS: InboxItem[] = [
-  {
-    id: 'inbox-1',
-    title: 'Add dark mode toggle',
-    description: 'Implement system preference detection with next-themes and user preference persistence in localStorage',
-    status: 'new',
-    timestamp: '2026-03-18T23:30:00Z',
-    priority: 'high',
-    category: 'feature',
-  },
-  {
-    id: 'inbox-2',
-    title: 'Fix theme flash on page load',
-    description: 'Add inline script to apply correct theme class before React renders',
-    status: 'processed',
-    timestamp: '2026-03-18T23:25:00Z',
-    priority: 'medium',
-    category: 'bug',
-  },
-  {
-    id: 'inbox-3',
-    title: 'Sidebar navigation component',
-    description: 'Create responsive sidebar with collapsible menu and mobile support',
-    status: 'new',
-    timestamp: '2026-03-18T22:10:00Z',
-    priority: 'medium',
-    category: 'feature',
-  },
-  {
-    id: 'inbox-4',
-    title: 'Project status indicators',
-    description: 'Add visual indicators for project states in the projects list',
-    status: 'archived',
-    timestamp: '2026-03-18T21:00:00Z',
-    priority: 'low',
-    category: 'enhancement',
-  },
-  {
-    id: 'inbox-5',
-    title: 'Mobile responsive layout',
-    description: 'Ensure dashboard works well on iPad and smaller screens',
-    status: 'needs-attention',
-    timestamp: '2026-03-18T20:00:00Z',
-    priority: 'high',
-    category: 'bug',
-  },
-]
+import { AlertCircle } from 'lucide-react'
 
 export function InboxList({ 
-  items = MOCK_INBOX_ITEMS, 
-  filter 
+  items = [], 
+  filter,
+  isLoading = false,
+  error = null,
 }: { 
   items?: InboxItem[] 
-  filter?: InboxFilter 
+  filter?: InboxFilter
+  isLoading?: boolean
+  error?: string | null
 }) {
-  const [loading, setLoading] = useState(true)
-  const [filteredItems, setFilteredItems] = useState<InboxItem[]>(items)
-
-  useEffect(() => {
-    // Simulate API call delay
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
+  const [filteredItems, setFilteredItems] = useState<InboxItem[]>([])
 
   useEffect(() => {
     if (!filter) {
@@ -105,7 +54,17 @@ export function InboxList({
     setFilteredItems(result)
   }, [items, filter])
 
-  if (loading) {
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+        <h3 className="text-lg font-semibold text-destructive">Error loading inbox</h3>
+        <p className="text-muted-foreground mt-2 max-w-sm">{error}</p>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
