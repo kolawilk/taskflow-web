@@ -71,6 +71,20 @@ export async function getFeaturesByProject(projectId: string): Promise<Feature[]
   })
 }
 
+// Get a single feature by ID
+export async function getFeatureById(featureId: string): Promise<Feature | null> {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM features WHERE id = ?', [featureId], (err, row) => {
+      if (err) {
+        console.error('Error in getFeatureById:', err.message)
+        reject(err)
+      } else {
+        resolve(row as Feature | null)
+      }
+    })
+  })
+}
+
 // Get tasks by feature ID
 export async function getTasksByFeature(featureId: string): Promise<Task[]> {
   return new Promise((resolve, reject) => {

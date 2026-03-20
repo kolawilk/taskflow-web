@@ -3,6 +3,7 @@ export type FeatureStage = 'backlog' | 'dev' | 'review' | 'pm-check' | 'done'
 
 export interface Feature {
   id: string
+  project_id?: string
   title: string
   description: string
   status: FeatureStage

@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import type { Request, Response, NextFunction } from 'express'
-import { getProjects, getFeaturesByProject, getTasksByFeature, getTaskById, getTaskHistory, getInboxItems, closeDatabase } from './database.ts'
+import { getProjects, getFeaturesByProject, getFeatureById, getTasksByFeature, getTaskById, getTaskHistory, getInboxItems, closeDatabase } from './database.ts'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -37,6 +37,20 @@ app.get('/api/projects/:id/features', async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`Error fetching features for project ${req.params.id}:`, error)
     res.status(500).json({ success: false, error: 'Failed to fetch features' })
+  }
+})
+
+// GET /api/features/:id - Get a single feature
+app.get('/api/features/:id', async (req: Request, res: Response) => {
+  try {
+    const feature = await getFeatureById(req.params.id)
+    if (!feature) {
+      return res.status(404).json({ success: false, error: 'Feature not found' })
+    }
+    res.json({ success: true, data: feature })
+  } catch (error) {
+    console.error(`Error fetching feature ${req.params.id}:`, error)
+    res.status(500).json({ success: false, error: 'Failed to fetch feature' })
   }
 })
 

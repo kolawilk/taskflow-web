@@ -222,6 +222,23 @@ class ApiClient {
   }
 
   /**
+   * Get a single feature by ID
+   * @param featureId - The feature ID to fetch
+   * @returns Promise with feature or null, loading state, and error message
+   */
+  async getFeatureById(featureId: string): Promise<ApiResult<Feature | null>> {
+    console.log(`[ApiClient] Fetching feature: ${featureId}`)
+    if (!featureId) {
+      return {
+        data: null,
+        isLoading: false,
+        error: 'Feature ID is required',
+      }
+    }
+    return this.fetch<Feature | null>(`/api/features/${encodeURIComponent(featureId)}`)
+  }
+
+  /**
    * Get a single task by ID
    * @param taskId - The task ID to fetch
    * @returns Promise with task or null, loading state, and error message
