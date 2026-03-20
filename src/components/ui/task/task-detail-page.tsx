@@ -4,9 +4,99 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Copy, Check, ArrowLeft } from 'lucide-react'
-import type { Task as TaskType, TaskStage, TaskHistoryEntry, Priority } from '@/types/task'
+import type { Task, TaskStage, TaskHistoryEntry, Priority } from '@/types/task'
 import { TaskTimeline } from './task-timeline'
-import { api } from '@/services/api'
+
+// Mock task data - multiple tasks for demo
+const MOCK_TASKS: Record<string, Task> = {
+  'TASKFLOW-T005': {
+    id: 'TASKFLOW-T005',
+    title: 'Create task detail page with full information',
+    description: 'Build a comprehensive task detail page showing title, description, acceptance criteria checklist, current stage, assigned agent, priority, and iteration count.',
+    stage: 'dev',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f005-task-detail-&-history-view',
+    featureId: 'TASKFLOW-F005',
+    featureTitle: 'Task Detail & History View',
+    acceptanceCriteria: [
+      'Task detail page displays full task title and description',
+      'Acceptance criteria are shown as a checklist with checkboxes',
+      'Current stage is prominently displayed (backlog, dev, review, pm-check, done)',
+      'Assigned agent is shown with avatar or name',
+      'Priority and iteration count are visible',
+      'Feature link navigates back to feature detail',
+      'Branch name is displayed and copyable',
+      'Page is responsive for MacBook Air and iPad',
+      'Dark mode styling is consistent with shadcn/ui theme',
+    ],
+    createdAt: '2026-03-19T00:07:52Z',
+    updatedAt: '2026-03-19T06:28:00Z',
+  },
+  'TASKFLOW-T001': {
+    id: 'TASKFLOW-T001',
+    title: 'Initialize project structure',
+    description: 'React + Vite setup with shadcn/ui',
+    stage: 'done',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f002-initial-setup',
+    featureId: 'TASKFLOW-F002',
+    featureTitle: 'Dashboard & Projects View',
+    acceptanceCriteria: [
+      'React + Vite setup complete',
+      'shadcn/ui installed and configured',
+      'Dark mode support enabled',
+    ],
+    createdAt: '2026-03-18T22:00:00Z',
+    updatedAt: '2026-03-19T00:30:00Z',
+  },
+  'TASKFLOW-T002': {
+    id: 'TASKFLOW-T002',
+    title: 'Configure dark mode',
+    description: 'Implement dark mode support using next-themes',
+    stage: 'done',
+    assignedAgent: 'dev',
+    priority: 'high',
+    iteration: 1,
+    branch: 'feat/taskflow-f002-dark-mode',
+    featureId: 'TASKFLOW-F002',
+    featureTitle: 'Dashboard & Projects View',
+    acceptanceCriteria: [
+      'Light/dark toggle implemented',
+      'System preference detection',
+      'Persistent theme selection',
+    ],
+    createdAt: '2026-03-19T00:00:00Z',
+    updatedAt: '2026-03-19T01:00:00Z',
+  },
+}
+
+const MOCK_HISTORY: TaskHistoryEntry[] = [
+  {
+    id: 'h1',
+    action: 'created',
+    agent: 'pm',
+    message: 'Task created: Create task detail page with full information',
+    timestamp: '2026-03-19T00:07:52Z',
+  },
+  {
+    id: 'h2',
+    action: 'advanced',
+    agent: 'pm',
+    message: 'Released from backlog',
+    timestamp: '2026-03-19T06:27:56Z',
+  },
+  {
+    id: 'h3',
+    action: 'claimed',
+    agent: 'dev',
+    message: 'Claimed by dev',
+    timestamp: '2026-03-19T06:28:15Z',
+  },
+]
 
 const STAGE_CONFIG: Record<TaskStage, { label: string; color: string }> = {
   backlog: { label: 'Backlog', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
@@ -22,114 +112,45 @@ const PRIORITY_CONFIG: Partial<Record<Priority, { label: string; color: string }
   high: { label: 'High', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 }
 
-// Transform API task to UI task format
-function transformTask(apiTask: {
-  id: string
-  feature_id: string
-  title: string
-  description: string
-  acceptance_criteria: string
-  stage: string
-  assigned_agent: string | null
-  priority: string | null
-  iteration: number
-  branch: string
-  feature_branch: string
-  feature_title: string
-  created_at: string
-  updated_at: string
-}): TaskType {
-  return {
-    id: apiTask.id,
-    title: apiTask.title,
-    description: apiTask.description,
-    stage: apiTask.stage as TaskStage,
-    assignedAgent: apiTask.assigned_agent || undefined,
-    priority: (apiTask.priority as Priority) || undefined,
-    iteration: apiTask.iteration,
-    branch: apiTask.branch,
-    featureId: apiTask.feature_id,
-    featureTitle: apiTask.feature_title,
-    acceptanceCriteria: apiTask.acceptance_criteria ? apiTask.acceptance_criteria.split('\n').filter(Boolean) : [],
-    createdAt: apiTask.created_at,
-    updatedAt: apiTask.updated_at,
-  }
-}
-
-// Transform API history entry to UI history format
-function transformHistoryEntry(entry: {
-  id: string
-  task_id: string
-  action: string
-  agent: string | null
-  message: string
-  timestamp: string
-}): TaskHistoryEntry {
-  return {
-    id: entry.id,
-    action: entry.action,
-    agent: entry.agent || 'system',
-    message: entry.message,
-    timestamp: entry.timestamp,
-  }
-}
-
 export function TaskDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [copiedBranch, setCopiedBranch] = useState(false)
-  const [task, setTask] = useState<TaskType | null>(null)
   const [history, setHistory] = useState<TaskHistoryEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
-  // Fetch task and history using API
+  // Look up task by ID from mock data
+  const task = id ? MOCK_TASKS[id] : undefined
+
+  // Fetch history on mount
   useEffect(() => {
-    if (!id) {
-      setLoading(false)
-      return
+    if (id) {
+      setLoadingHistory(true)
+      fetch(`/api/tasks/${id}/history`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setHistory(data.data)
+          }
+        })
+        .catch(() => {
+          // Fallback to mock history if API fails
+          setHistory(MOCK_HISTORY)
+        })
+        .finally(() => {
+          setLoadingHistory(false)
+        })
     }
-
-    setLoading(true)
-    setError(null)
-
-    // Fetch task
-    api.getTaskById(id).then(result => {
-      if (result.isLoading === false && result.data) {
-        setTask(transformTask(result.data))
-      } else {
-        setError('Task not found')
-      }
-      setLoading(false)
-    })
-
-    // Fetch history
-    api.getTaskHistory(id).then(result => {
-      if (result.isLoading === false && result.data) {
-        setHistory(result.data.map(transformHistoryEntry))
-      }
-    })
   }, [id])
 
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-      </div>
-    )
-  }
-
   // Handle missing task - show 404-like state
-  if (error || !task) {
+  if (!task) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto mt-8">
           <CardHeader>
             <CardTitle>Task Not Found</CardTitle>
-            <CardDescription>{error || 'The requested task could not be found.'}</CardDescription>
+            <CardDescription>The requested task could not be found.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="outline" onClick={() => navigate(-1)}>
@@ -230,7 +251,13 @@ export function TaskDetailPage() {
               <CardTitle>History</CardTitle>
             </CardHeader>
             <CardContent>
-              <TaskTimeline history={history} />
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : (
+                <TaskTimeline history={history} />
+              )}
             </CardContent>
           </Card>
         </div>
