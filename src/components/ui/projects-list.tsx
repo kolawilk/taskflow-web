@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Building2, CheckCircle2, AlertCircle, Archive } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -16,46 +15,6 @@ export interface Project {
   lastUpdated: string
 }
 
-// Mock data - would be replaced with real API call
-const MOCK_PROJECTS: Project[] = [
-  {
-    id: 'taskflow-web',
-    name: 'taskflow-web',
-    description: 'Web UI for taskflow - manage projects, features, and tasks with a beautiful shadcn/ui interface',
-    status: 'active',
-    taskCount: 8,
-    featuresInProgress: 3,
-    lastUpdated: '2 hours ago',
-  },
-  {
-    id: 'taskflow-api',
-    name: 'taskflow-api',
-    description: 'REST API for taskflow with full CRUD operations and webhooks',
-    status: 'active',
-    taskCount: 12,
-    featuresInProgress: 4,
-    lastUpdated: '5 hours ago',
-  },
-  {
-    id: 'taskflow-mobile',
-    name: 'taskflow-mobile',
-    description: 'Mobile app for iOS and Android with push notifications',
-    status: 'on-hold',
-    taskCount: 0,
-    featuresInProgress: 0,
-    lastUpdated: '2 days ago',
-  },
-  {
-    id: 'einsatzsim',
-    name: 'einsatzsim',
-    description: 'Fire department mission simulator for iPad/iPhone play sessions',
-    status: 'active',
-    taskCount: 1,
-    featuresInProgress: 1,
-    lastUpdated: '1 hour ago',
-  },
-]
-
 function getStatusIcon(status: ProjectStatus) {
   switch (status) {
     case 'active':
@@ -71,23 +30,7 @@ function getStatusIcon(status: ProjectStatus) {
   }
 }
 
-export function ProjectsList({ projects = MOCK_PROJECTS }: { projects?: Project[] }) {
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Simulate API call delay
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
-  }
-
+export function ProjectsList({ projects }: { projects: Project[] }) {
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
